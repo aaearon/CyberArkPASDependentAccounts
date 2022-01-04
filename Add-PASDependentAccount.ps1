@@ -35,46 +35,70 @@ function Add-PASDependentAccount {
         # Dependency-specific required and optional properties to define.
         [Parameter(Mandatory = $true)]
         [hashtable]
-        $platformAccountProperties
+        $platformAccountProperties,
+
+        # Adds a random, 8 character string to the end of the dependent account name.
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $EnsureUniqueName
     )
 
     begin {
-        # Check if PACLI is connected to a Vault if not throw an error.
+        # Just used to check if PACLI is connected to a Vault and if not stop right there.
+        Get-PVUserList -ErrorAction Stop | Out-Null
     }
 
     process {
-        Open-PVSafe -safe $SafeName
-        # Check if object exists
+        Open-PVSafe -safe $SafeName | Out-Null
 
-        # Operating System-ioSHARPWindowsDomainServiceAccount-iosharp.lab-serviceAccount01-INIFile-server01.iosharp.lab
+        # This will generate something like Operating System-ioSHARPWindowsDomainServiceAccount-iosharp.lab-serviceAccount01-INIFile-server01.iosharp.lab
         $fileName = "$MasterPassName-$PlatformId-$Address"
-        # PACLI needs a password value provided. We will pass a dummy value and the next password change will update it.
+        if ($EnsureUniqueName) {$fileName = "$fileName-$($((new-guid).Guid).Split('-')[0])"}
+        # PACLI needs a password value provided. We will pass a dummy value and the next password change to the master will update it.
         Add-PVPasswordObject -safe $SafeName -folder Root -file $fileName -Password ("dummy" | ConvertTo-SecureString -AsPlainText -Force)
 
         # Platform-independent properties
-        Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category 'MasterPassName' -value $MasterPassName
-        Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category 'MasterPassFolder' -value Root
-        Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category 'PolicyId' -value $PlatformId
-        Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category 'address' -value $address
+        Set-FileCategory -safe $safeName -folder Root -file $fileName -category 'MasterPassName' -value $MasterPassName
+        Set-FileCategory -safe $safeName -folder Root -file $fileName -category 'MasterPassFolder' -value Root
+        Set-FileCategory -safe $safeName -folder Root -file $fileName -category 'PolicyId' -value $PlatformId
+        Set-FileCategory -safe $safeName -folder Root -file $fileName -category 'address' -value $address
         if ($automaticManagementEnabled -eq $false -and $manualManagementReason) {
-            Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category 'CPMDisabled' -value $manualManagementReason
+            Set-FileCategory -safe $safeName -folder Root -file $fileName -category 'CPMDisabled' -value $manualManagementReason
         }
         if ($automaticManagementEnabled -eq $false -and $manualManagementReason -eq $null) {
-            Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category 'CPMDisabled' -value 'NoReason'
+            Set-FileCategory -safe $safeName -folder Root -file $fileName -category 'CPMDisabled' -value 'NoReason'
         }
 
         # Platform-specific properties
-        # try/catch to add or set in case the category already exists
         foreach ($Property in $platformAccountProperties.GetEnumerator()) {
-            try {
-                Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value -ErrorAction Stop
-            } catch {
-                Set-PVFileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value
-            }
+                Set-FileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value -ErrorAction Stop
         }
+
+        Close-PVSafe -safe $safeName | Out-Null
     }
 
     end {
 
+    }
+}
+
+# If an object exists and we try to 'Add' a category, it will throw an error and we need
+# to 'Set' the category instead. As adding a PVPasswordObject will undelete a previously deleted
+# PVPasswordObject, there is a chance when adding we will unknowngily undelete an object and thus
+# need to 'Set' vs 'Add' a category. As to not have a bunch of try/catch statements, we create
+# our own, short wrapper function here which implements the try/catch in order to not have it X
+# amount of times above.
+function Set-FileCategory {
+    param (
+        $safeName,
+        $file,
+        $category,
+        $value
+    )
+
+    try {
+        Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category $category -value $value -ErrorAction Stop
+    } catch {
+        Set-PVFileCategory -safe $safeName -folder Root -file $fileName -category $category -value $value -ErrorAction Stop
     }
 }
