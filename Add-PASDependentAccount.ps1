@@ -64,8 +64,13 @@ function Add-PASDependentAccount {
         }
 
         # Platform-specific properties
+        # try/catch to add or set in case the category already exists
         foreach ($Property in $platformAccountProperties.GetEnumerator()) {
-            Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value
+            try {
+                Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value -ErrorAction Stop
+            } catch {
+                Set-PVFileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value
+            }
         }
     }
 
