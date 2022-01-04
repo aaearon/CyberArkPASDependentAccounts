@@ -1,5 +1,5 @@
 ﻿#Requires -Module PoShPACLI
-function Add-PASAccountDependency {
+function Add-PASDependentAccount {
     [CmdletBinding()]
     param (
         # Name of the master password (account) this dependency will be related to.
