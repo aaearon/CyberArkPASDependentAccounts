@@ -18,7 +18,7 @@ Describe 'Add-PASDependentAccount' {
             safeName = 'Windows'
         }
 
-        $SinglePASAccountResult | Add-PASDependentAccount -PlatformId INIFile -address server01.iosharp.lab -platformAccountProperties @{'FilePath' = 'C:\ExampleScheduledTask\example2.ini'; 'ConnectionType' = 'Windows File Sharing'; 'INISection' = 'Main'; 'INIParameterName' = 'Password'}
+        $SinglePASAccountResult | Add-PASDependentAccount -PlatformId INIFile -address server01.iosharp.lab -platformAccountProperties @{'FilePath' = 'C:\Example\example2.ini'; 'ConnectionType' = 'Windows File Sharing'; 'INISection' = 'Main'; 'INIParameterName' = 'Password'}
 
         Should -Invoke -CommandName Add-PVPasswordObject -ParameterFilter {$file -eq 'localAdmin01@server02.iosharp.lab-INIFile-server01.iosharp.lab' -and $SafeName -eq 'Windows'}
     }

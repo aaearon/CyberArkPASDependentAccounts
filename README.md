@@ -15,6 +15,15 @@ PS > Add-PASDependentAccount `
         -SafeName Windows `
         -PlatformId INIFile `
         -address server01.iosharp.lab `
-        -platformAccountProperties @{'FilePath' = 'C:\ExampleScheduledTask\example2.ini'; 'ConnectionType' = 'Windows File Sharing'; 'INISection' = 'Main'; 'INIParameterName' = 'Password'} `
+        -platformAccountProperties @{'FilePath' = 'C:\Example\example2.ini'; 'ConnectionType' = 'Windows File Sharing'; 'INISection' = 'Main'; 'INIParameterName' = 'Password'} `
         -EnsureUniqueName
+```
+
+### Passing an Account object from psPAS
+
+```powershell
+PS > Get-PASAccount -search "admin01 server02.iosharp.lab" `
+        | Add-PASDependentAccount -PlatformId INIFile `
+        -address server02.iosharp.lab `
+        -platformAccountProperties @{'FilePath' = 'C:\Example\example2.ini'; 'ConnectionType' = 'Windows File Sharing'; 'INISection' = 'Main'; 'INIParameterName' = 'Password'}
 ```
