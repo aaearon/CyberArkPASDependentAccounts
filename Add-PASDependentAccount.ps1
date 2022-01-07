@@ -3,12 +3,18 @@ function Add-PASDependentAccount {
     [CmdletBinding()]
     param (
         # Name of the master password (account) this dependency will be related to.
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true
+        )]
         [string]
+        [Alias('name')]
         $MasterPassName,
 
         # Name of the safe the master password (account) is stored in. The dependency will be added there.
-        [Parameter(Mandatory = $true)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true
+            )]
         [string]
         $SafeName,
 
