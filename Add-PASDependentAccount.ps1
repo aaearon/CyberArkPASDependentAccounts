@@ -56,7 +56,7 @@ function Add-PASDependentAccount {
 
         # If an object is added with a name that matches a deleted account, it will undelete that object instead (older activities, existing file categories, etc.
         # will still be there.) This will generate something like Operating System-ioSHARPWindowsDomainServiceAccount-iosharp.lab-serviceAccount01-INIFile-server01.iosharp.lab-77bfca12
-        if ($EnsureUniqueName) {$fileName = "$fileName-$($((new-guid).Guid).Split('-')[0])"}
+        if ($EnsureUniqueName) { $fileName = "$fileName-$($((new-guid).Guid).Split('-')[0])" }
 
         # PACLI needs a password value provided. We will pass an empty value as the value does not matter. When the CPM updates a dependent account, it only updates the target
         # server using the password of the account defined in MasterPassName and never the password of the dependent account in the Vault.
@@ -76,7 +76,7 @@ function Add-PASDependentAccount {
 
         # Platform-specific properties
         foreach ($Property in $platformAccountProperties.GetEnumerator()) {
-                Set-FileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value -ErrorAction Stop
+            Set-FileCategory -safe $safeName -folder Root -file $fileName -category $Property.Key -value $Property.Value -ErrorAction Stop
         }
 
         Close-PVSafe -safe $safeName | Out-Null
@@ -103,7 +103,8 @@ function Set-FileCategory {
 
     try {
         Add-PVFileCategory -safe $safeName -folder Root -file $fileName -category $category -value $value -ErrorAction Stop
-    } catch {
+    }
+    catch {
         Set-PVFileCategory -safe $safeName -folder Root -file $fileName -category $category -value $value -ErrorAction Stop
     }
 }
